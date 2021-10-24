@@ -1,0 +1,86 @@
+####################################################
+library(ggplot2)
+library(ggsignif)
+
+setwd("D:/Lab/Kallima/qPCR")
+expr <- read.csv(file = "QPCR_R.csv", header = TRUE)
+foo <- vector(mode="list", length=24)
+names(foo) <- c("L7-PP-F", "L7-VP-F", "L7-PP-H", "L7-VP-H", "L7-PP-O", "L7-VP-O", 
+                "PP-PP-F", "PP-VP-F", "PP-PP-H", "PP-VP-H", "PP-PP-O", "PP-VP-O", 
+                "P1-PP-F", "P1-VP-F", "P1-PP-H", "P1-VP-H", "P1-PP-O", "P1-VP-O", 
+                "P3-PP-F", "P3-VP-F", "P3-PP-H", "P3-VP-H", "P3-PP-O", "P3-VP-O")
+for (i in 1:nrow(expr)) {
+  if (expr[i,'TYPE'] == "L7-PP") {
+    foo[['L7-PP-F']] <- c(foo[['L7-PP-F']],expr[i,'F'])
+    foo[['L7-PP-H']] <- c(foo[['L7-PP-H']],expr[i,'H'])
+    foo[['L7-PP-O']] <- c(foo[['L7-PP-O']],expr[i,'O'])
+  }
+  else if (expr[i,'TYPE'] == "L7-VP") {
+    foo[['L7-VP-F']] <- c(foo[['L7-VP-F']],expr[i,'F'])
+    foo[['L7-VP-H']] <- c(foo[['L7-VP-H']],expr[i,'H'])
+    foo[['L7-VP-O']] <- c(foo[['L7-VP-O']],expr[i,'O'])
+  }
+  else if (expr[i,'TYPE'] == "PP-PP") {
+    foo[['PP-PP-F']] <- c(foo[['PP-PP-F']],expr[i,'F'])
+    foo[['PP-PP-H']] <- c(foo[['PP-PP-H']],expr[i,'H'])
+    foo[['PP-PP-O']] <- c(foo[['PP-PP-O']],expr[i,'O'])
+  }
+  else if (expr[i,'TYPE'] == "PP-VP") {
+    foo[['PP-VP-F']] <- c(foo[['PP-VP-F']],expr[i,'F'])
+    foo[['PP-VP-H']] <- c(foo[['PP-VP-H']],expr[i,'H'])
+    foo[['PP-VP-O']] <- c(foo[['PP-VP-O']],expr[i,'O'])
+  }
+  else if (expr[i,'TYPE'] == "P1-PP") {
+    foo[['P1-PP-F']] <- c(foo[['P1-PP-F']],expr[i,'F'])
+    foo[['P1-PP-H']] <- c(foo[['P1-PP-H']],expr[i,'H'])
+    foo[['P1-PP-O']] <- c(foo[['P1-PP-O']],expr[i,'O'])
+  }
+  else if (expr[i,'TYPE'] == "P1-VP") {
+    foo[['P1-VP-F']] <- c(foo[['P1-VP-F']],expr[i,'F'])
+    foo[['P1-VP-H']] <- c(foo[['P1-VP-H']],expr[i,'H'])
+    foo[['P1-VP-O']] <- c(foo[['P1-VP-O']],expr[i,'O'])
+  }
+  else if (expr[i,'TYPE'] == "P3-PP") {
+    foo[['P3-PP-F']] <- c(foo[['P3-PP-F']],expr[i,'F'])
+    foo[['P3-PP-H']] <- c(foo[['P3-PP-H']],expr[i,'H'])
+    foo[['P3-PP-O']] <- c(foo[['P3-PP-O']],expr[i,'O'])
+  }
+  else if (expr[i,'TYPE'] == "P3-VP") {
+    foo[['P3-VP-F']] <- c(foo[['P3-VP-F']],expr[i,'F'])
+    foo[['P3-VP-H']] <- c(foo[['P3-VP-H']],expr[i,'H'])
+    foo[['P3-VP-O']] <- c(foo[['P3-VP-O']],expr[i,'O'])
+  }
+}
+m <- matrix(nrow = 24, ncol = 2)
+for (i in 1:24) {
+  m[i,1] = mean(foo[[i]])
+  m[i,2] = sd(foo[[i]])/sqrt(length(foo[[i]]))
+}
+m <- as.data.frame(m)
+rownames(m) <- names(foo)
+colnames(m) <- c("mean", "sderr")
+m$relative<-m$mean/max(m$mean)
+m$re_sderr<-m$sderr/max(m$mean)
+ggplot(m,aes(row.names(m), relative)) +
+  geom_bar(stat="identity", color="black", fill = "red", width=.4, position=position_dodge()) +
+  geom_errorbar(aes(ymin=relative, ymax=relative+re_sderr), width=.2, position=position_dodge(.9)) +
+  scale_y_continuous(expand = c(0,0),breaks = c(0,0.5,1,1.5,2)) +
+  theme(plot.title=element_text(size = 25),
+        legend.position="none",
+        panel.background = element_blank(),
+        axis.line = element_line(colour = "black"),
+        axis.text.x=element_text(size=15,angle=0),
+        axis.text.y=element_text(size=15),
+        axis.title.x=element_text(size = 23),
+        axis.title.y=element_text(size = 23))+
+  labs(y= 'Expression')
+
+####################################################
+wilcox.test(x = foo[['L7-PP-F']], y = foo[['L7-VP-F']])
+wilcox.test(x = foo[['L7-PP-H']], y = foo[['L7-VP-H']])
+wilcox.test(x = foo[['PP-PP-F']], y = foo[['PP-VP-F']])
+wilcox.test(x = foo[['PP-PP-H']], y = foo[['PP-VP-H']])
+wilcox.test(x = foo[['P1-PP-F']], y = foo[['P1-VP-F']]) #*
+wilcox.test(x = foo[['P1-PP-H']], y = foo[['P1-VP-H']]) #*
+wilcox.test(x = foo[['P3-PP-F']], y = foo[['P3-VP-F']])
+wilcox.test(x = foo[['P3-PP-H']], y = foo[['P3-VP-H']]) #*
